@@ -138,27 +138,10 @@ class Row(Gtk.ListBoxRow, EditableMapping):
 
         text_input_container = Gtk.Popover()
         show_text_input_button = Gtk.MenuButton(popover=text_input_container)
-        text_input = GtkSource.View(
-            width_request=300,
-            height_request=100
-        )
-        completion = text_input.get_completion()
-        completion.add_provider(FunctionCompletionProvider())
-        completion.add_provider(KeyCompletionProvider())
 
-        text_input.get_style_context().add_class("basic-editor-text-view")
-
-        text_input.set_margin_start(0)
-        text_input.set_margin_end(0)
-        text_input.set_margin_top(0)
-        text_input.set_margin_bottom(0)
-
-        text_input.set_left_margin(12)
-        text_input.set_right_margin(12)
-        text_input.set_top_margin(8)
-        text_input.set_bottom_margin(8)
-
+        text_input = self._setup_source_view()
         text_input.get_buffer().set_text(symbol or "")
+
         # text_input_label.set_has_frame(False)
         completion = Gtk.EntryCompletion()
         completion.set_model(store)
@@ -189,6 +172,40 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         self.show_all()
 
         EditableMapping.__init__(self, *args, **kwargs)
+
+    def _setup_source_view(self):
+        """Prepare the code editor."""
+        source_view = GtkSource.View(
+            width_request=300,
+            height_request=100,
+            monospace=True
+        )
+
+        # Syntax Highlighting
+        # Thanks to https://github.com/wolfthefallen/py-GtkSourceCompletion-example
+        python = GtkSource.LanguageManager().get_language("python")
+        # there are some similarities with python, I don't know how I can specify
+        # custom rules for input-remappers syntax.
+        source_view.get_buffer().set_language(python)
+
+        # Autocompletion
+        completion = source_view.get_completion()
+        completion.add_provider(FunctionCompletionProvider())
+        completion.add_provider(KeyCompletionProvider())
+
+        source_view.get_style_context().add_class("basic-editor-text-view")
+
+        source_view.set_margin_start(0)
+        source_view.set_margin_end(0)
+        source_view.set_margin_top(0)
+        source_view.set_margin_bottom(0)
+
+        source_view.set_left_margin(12)
+        source_view.set_right_margin(12)
+        source_view.set_top_margin(8)
+        source_view.set_bottom_margin(8)
+
+        return source_view
 
     def set_show_text_input_button_label(self, *_):
         symbol = self.get_symbol() or ""
