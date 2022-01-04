@@ -149,7 +149,7 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         completion.set_match_func(self.match)
         # text_input.set_completion(completion)
         text_input_container.add(text_input)
-        text_input_container.set_position(Gtk.PositionType.LEFT)
+        text_input_container.set_position(Gtk.PositionType.BOTTOM)
         text_input.get_buffer().connect("changed", self.set_show_text_input_button_label)
         text_input.show_all()
 
