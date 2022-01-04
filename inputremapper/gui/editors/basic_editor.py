@@ -209,8 +209,7 @@ class Row(Gtk.ListBoxRow, EditableMapping):
 
     def set_show_text_input_button_label(self, *_):
         symbol = self.get_symbol() or ""
-        symbol = symbol.replace(" ", "")
-        symbol = re.sub(r"\s+", "", symbol)
+        symbol = re.sub(r"\s+", " ", symbol)
         if len(symbol) > 30:
             symbol = symbol[:27] + "..."
 
