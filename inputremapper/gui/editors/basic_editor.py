@@ -21,13 +21,18 @@
 
 """The basic editor with one row per mapping."""
 
+import re
 
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, GtkSource
 
 from inputremapper.gui.custom_mapping import custom_mapping
 from inputremapper.key import Key
 from inputremapper.gui.editors.base import EditableMapping, store, Editor
 from inputremapper.logger import logger
+from inputremapper.gui.editors.autocompletion import (
+    FunctionCompletionProvider,
+    KeyCompletionProvider,
+)
 
 
 class _KeycodeRecordingToggle(Gtk.ToggleButton):
@@ -131,25 +136,49 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         self.key_recording_toggle = key_recording_toggle
         self.key_recording_toggle.key = key
 
-        text_input = Gtk.Entry()
-        self.text_input = text_input
-        text_input.set_alignment(0.5)
-        text_input.set_width_chars(4)
-        text_input.set_has_frame(False)
+        text_input_container = Gtk.Popover()
+        show_text_input_button = Gtk.MenuButton(popover=text_input_container)
+        text_input = GtkSource.View(
+            width_request=300,
+            height_request=100
+        )
+        completion = text_input.get_completion()
+        completion.add_provider(FunctionCompletionProvider())
+        completion.add_provider(KeyCompletionProvider())
+
+        text_input.get_style_context().add_class("basic-editor-text-view")
+
+        text_input.set_margin_start(0)
+        text_input.set_margin_end(0)
+        text_input.set_margin_top(0)
+        text_input.set_margin_bottom(0)
+
+        text_input.set_left_margin(12)
+        text_input.set_right_margin(12)
+        text_input.set_top_margin(8)
+        text_input.set_bottom_margin(8)
+
+        text_input.get_buffer().set_text(symbol or "")
+        # text_input_label.set_has_frame(False)
         completion = Gtk.EntryCompletion()
         completion.set_model(store)
         completion.set_text_column(0)
         completion.set_match_func(self.match)
-        text_input.set_completion(completion)
+        # text_input.set_completion(completion)
+        text_input_container.add(text_input)
+        text_input_container.set_position(Gtk.PositionType.LEFT)
+        text_input.get_buffer().connect("changed", self.set_show_text_input_button_label)
+        text_input.show_all()
 
-        if symbol is not None:
-            text_input.set_text(symbol)
+        self.text_input = text_input
+        self.show_text_input_button = show_text_input_button
+        self.set_symbol(symbol)
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box.set_homogeneous(False)
         box.set_spacing(0)
         box.pack_start(key_recording_toggle, expand=False, fill=True, padding=0)
-        box.pack_start(text_input, expand=True, fill=True, padding=0)
+        box.pack_start(show_text_input_button, expand=True, fill=True, padding=0)
         box.pack_start(delete_button, expand=False, fill=True, padding=0)
         box.show_all()
         box.get_style_context().add_class("row-box")
@@ -160,6 +189,18 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         self.show_all()
 
         EditableMapping.__init__(self, *args, **kwargs)
+
+    def set_show_text_input_button_label(self, *_):
+        symbol = self.get_symbol() or ""
+        symbol = symbol.replace(" ", "")
+        symbol = re.sub(r"\s+", "", symbol)
+        if len(symbol) > 30:
+            symbol = symbol[:27] + "..."
+
+        self.show_text_input_button.set_label(symbol)
+        label = self.show_text_input_button.get_children()[0]
+        label.set_alignment(0.5, 0.5)
+        label.set_width_chars(4)
 
     def get_delete_button(self):
         return self.delete_button
@@ -179,12 +220,15 @@ class Row(Gtk.ListBoxRow, EditableMapping):
 
     def get_symbol(self):
         """Get the assigned symbol from the middle column."""
-        symbol = self.text_input.get_text()
+        buffer = self.text_input.get_buffer()
+        symbol = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True)
         return symbol if symbol else None
 
     def set_symbol(self, symbol):
         """Set the assigned symbol from the middle column."""
-        self.text_input.set_text(symbol)
+        symbol = symbol or ""
+        self.set_show_text_input_button_label(symbol)
+        self.text_input.get_buffer().set_text(symbol)
 
     def set_key(self, key):
         """Show what the user is currently pressing in ther user interface."""
