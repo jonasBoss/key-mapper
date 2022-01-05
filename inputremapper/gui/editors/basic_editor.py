@@ -23,7 +23,7 @@
 
 import re
 
-from gi.repository import Gtk, GLib, GtkSource
+from gi.repository import Gtk, GLib, Gio, GtkSource
 
 from inputremapper.gui.custom_mapping import custom_mapping
 from inputremapper.key import Key
@@ -113,7 +113,7 @@ class Row(Gtk.ListBoxRow, EditableMapping):
 
     __gtype_name__ = "ListBoxRow"
 
-    def __init__(self, *args, delete_callback, key=None, symbol=None, **kwargs):
+    def __init__(self, *args, user_interface, delete_callback, key=None, symbol=None, **kwargs):
         """
 
         Parameters
@@ -137,7 +137,8 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         self.key_recording_toggle.key = key
 
         text_input_container = Gtk.Popover()
-        show_text_input_button = Gtk.MenuButton(popover=text_input_container)
+        show_text_input_button = Gtk.Button()
+        show_text_input_button.connect("clicked", self._on_show_text_input_button_clicked)
 
         text_input = self._setup_source_view()
         text_input.get_buffer().set_text(symbol or "")
@@ -167,11 +168,16 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         box.get_style_context().add_class("row-box")
 
         self.delete_callback = delete_callback
+        self.user_interface = user_interface
 
         self.add(box)
         self.show_all()
 
-        EditableMapping.__init__(self, *args, **kwargs)
+        EditableMapping.__init__(self, user_interface, *args, **kwargs)
+
+    def get(self, name):
+        """Get a widget from the window"""
+        return self.user_interface.builder.get_object(name)
 
     def _setup_source_view(self):
         """Prepare the code editor."""
@@ -257,6 +263,12 @@ class Row(Gtk.ListBoxRow, EditableMapping):
         self.key_recording_toggle.key = None
         self.delete_callback(self)
 
+    def _on_show_text_input_button_clicked(self, *_):
+        """Switch the mapping stack"""
+        mapping_stack = self.get("mapping-stack")
+        children = mapping_stack.get_children()
+        mapping_stack.set_visible_child(children[1])
+
     def __str__(self):
         return f"Row({str(self.get_key())}, {self.get_symbol()})"
 
@@ -284,7 +296,9 @@ class BasicEditor(Editor):
     def load_custom_mapping(self):
         """Display the custom mapping."""
         mapping_list = self.get("mapping_list")
+        mapping_list_small = self.get("mapping_list_small")
         mapping_list.forall(mapping_list.remove)
+        mapping_list_small.forall(mapping_list_small.remove)
 
         for key, output in custom_mapping:
             row = Row(
@@ -296,7 +310,7 @@ class BasicEditor(Editor):
             toggle = row.key_recording_toggle
             toggle.connect("focus-in-event", self.user_interface.can_modify_mapping)
             toggle.connect("focus-out-event", self.user_interface.save_preset)
-            mapping_list.insert(row, -1)
+            self.add_row(row)
 
         self.check_add_row()
 
@@ -372,15 +386,28 @@ class BasicEditor(Editor):
     def clear_mapping_table(self):
         """Remove all rows from the mappings table."""
         mapping_list = self.get("mapping_list")
+        mapping_list_small = self.get("mapping_list_small")
         mapping_list.forall(mapping_list.remove)
+        mapping_list_small.forall(mapping_list_small.remove)
         custom_mapping.empty()
 
     def add_empty(self):
         """Add one empty row for a single mapped key."""
         logger.spam("Adding a new empty row")
         empty = Row(user_interface=self.user_interface, delete_callback=self.remove_row)
+        self.add_row(empty)
+
+    def add_row(self, row):
+        """add this row to the editor.
+
+        Parameters
+        ----------
+        row : Row
+        """
         mapping_list = self.get("mapping_list")
-        mapping_list.insert(empty, -1)
+        mapping_list_small = self.get("mapping_list_small")
+        mapping_list.insert(row, -1)
+        mapping_list_small.insert(row, -1)
 
     def remove_row(self, row):
         """Remove this row from the editor.
@@ -390,5 +417,7 @@ class BasicEditor(Editor):
         row : Row
         """
         mapping_list = self.get("mapping_list")
+        mapping_list_small = self.get("mapping_list_small")
         # https://stackoverflow.com/a/30329591/4417769
         mapping_list.remove(row)
+        mapping_list_small.remove(row)

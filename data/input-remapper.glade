@@ -826,25 +826,154 @@ To give your keys back their original mapping.</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow">
+                          <object class="GtkStack" id="mapping-stack">
                             <property name="visible">True</property>
-                            <property name="can-focus">True</property>
+                            <property name="can-focus">False</property>
                             <child>
-                              <object class="GtkViewport">
+                              <object class="GtkScrolledWindow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">False</property>
+                                <property name="can-focus">True</property>
                                 <child>
-                                  <object class="GtkListBox" id="mapping_list">
+                                  <object class="GtkViewport">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
-                                    <property name="selection-mode">none</property>
-                                    <style>
-                                      <class name="default-key-list"/>
-                                      <class name="basic-editor"/>
-                                    </style>
+                                    <child>
+                                      <object class="GtkListBox" id="mapping_list">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="selection-mode">none</property>
+                                        <style>
+                                          <class name="default-key-list"/>
+                                          <class name="basic-editor"/>
+                                        </style>
+                                      </object>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
+                              <packing>
+                                <property name="name">page0</property>
+                                <property name="title" translatable="yes">page0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <child>
+                                  <object class="GtkScrolledWindow">
+                                    <property name="width-request">140</property>
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <child>
+                                      <object class="GtkViewport">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <child>
+                                          <object class="GtkListBox" id="mapping_list_small">
+                                            <property name="visible">True</property>
+                                            <property name="can-focus">False</property>
+                                            <property name="selection-mode">none</property>
+                                            <style>
+                                              <class name="default-key-list"/>
+                                              <class name="basic-editor"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <object class="GtkScrolledWindow">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">True</property>
+                                        <child>
+                                          <object class="GtkViewport">
+                                            <property name="visible">True</property>
+                                            <property name="can-focus">False</property>
+                                            <property name="shadow-type">none</property>
+                                            <child>
+                                              <object class="GtkSourceView" id="code_editor1">
+                                                <property name="visible">True</property>
+                                                <property name="can-focus">True</property>
+                                                <property name="left-margin">2</property>
+                                                <property name="right-margin">2</property>
+                                                <property name="monospace">True</property>
+                                                <property name="show-line-numbers">True</property>
+                                                <property name="tab-width">2</property>
+                                                <property name="auto-indent">True</property>
+                                              </object>
+                                            </child>
+                                          </object>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButtonBox">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <child>
+                                          <object class="GtkButton" id="btn_abort_code">
+                                            <property name="label" translatable="yes">Abort</property>
+                                            <property name="visible">True</property>
+                                            <property name="can-focus">True</property>
+                                            <property name="receives-default">True</property>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkButton" id="btn_confirm_code">
+                                            <property name="label" translatable="yes">Confirm</property>
+                                            <property name="visible">True</property>
+                                            <property name="can-focus">True</property>
+                                            <property name="receives-default">True</property>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="name">page1</property>
+                                <property name="title" translatable="yes">page1</property>
+                                <property name="position">1</property>
+                              </packing>
                             </child>
                           </object>
                           <packing>
